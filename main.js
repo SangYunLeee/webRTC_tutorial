@@ -2,6 +2,7 @@
 const myVideoContainer = document.getElementById("myVideoContainer");
 const myVideoElement = document.getElementById("myVideo");
 
+let pc = null;
 // define a click event listener to trigger a GUM (get user media) request
 myVideoContainer.addEventListener("click", () => {
     navigator.mediaDevices.getUserMedia({
@@ -9,6 +10,16 @@ myVideoContainer.addEventListener("click", () => {
     })
         .then(stream => {
             myVideoElement.srcObject = stream; // add stream to our <video> element
+            pc = new RTCPeerConnection();
+            pc.addEventListener("icegatheringstatechange", (e) => {
+                console.log("icegatheringstatechange", e);
+            });
+            pc.addEventListener("iceconnectionstatechange", (e) => {
+                console.log("iceconnectionstatechange", e);
+            });
+            pc.addEventListener("icecandidate", (e) => {
+                console.log("icecandidate", e);
+            });
         })
         .catch(err => {
             console.log("an error occurred trying to get user's video feed", err);
@@ -23,4 +34,4 @@ function getVideoIDs() {
                 console.log(device)
             })
         })
-}; // end getVideoIDs function
+}; // end getVideoIDs functionfa
