@@ -30,6 +30,7 @@ myVideoContainer.addEventListener("click", async () => {
             console.log("offer", offer);
             stats = await pc.getStats();
             console.log("stats", stats);
+            await pc.setLocalDescription(offer);
         })
         .catch(err => {
             console.log("an error occurred trying to get user's video feed", err);
