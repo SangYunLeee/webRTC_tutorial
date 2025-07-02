@@ -20,23 +20,28 @@ myVideoContainer.addEventListener("click", async () => {
                 console.log("iceconnectionstatechange", e);
             });
             pc.addEventListener("icecandidate", (e) => {
-                console.log("icecandidate", e);
+                console.log("icecandidate", e.candidate);
             });
+            pc.addEventListener("negotiationneeded", onNegotiationNeeded);
             stream.getTracks().forEach(track => {
                 console.log("trackAdded: ", track);
                 pc.addTrack(track);
             });
-            offer = await pc.createOffer();
-            console.log("offer", offer);
-            stats = await pc.getStats();
-            console.log("stats", stats);
-            await pc.setLocalDescription(offer);
         })
         .catch(err => {
             console.log("an error occurred trying to get user's video feed", err);
             getVideoIDs();
         })
 });
+
+async function onNegotiationNeeded(e) {
+    console.log("negotiationneeded");
+    offer = await pc.createOffer();
+    console.log("offer", offer);
+    stats = await pc.getStats();
+    console.log("stats", stats);
+    await pc.setLocalDescription(offer);
+}
 
 function getVideoIDs() {
     navigator.mediaDevices.enumerateDevices()
