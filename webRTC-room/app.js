@@ -3,6 +3,7 @@ import http from "http";
 import { WebSocketServer } from "ws";
 
 let connections = [];
+let rooms = [];
 
 const PORT = 8080;
 
@@ -15,6 +16,36 @@ app.use(express.static("public"));
 app.get("/", (req, res) => {
   res.sendFile(process.cwd() + "/public/index.html");
 });
+
+app.post("/create-room", (req, res) => {
+  let body = "";
+  req.on("data", (chunk) => {
+    body += chunk;
+  });
+  req.on("end", () => {
+    const { roomName, userId } = JSON.parse(body);
+    const existingRoom = rooms.find((room) => room.roomName === roomName);
+    if (existingRoom) {
+      res.status(400).json({
+        data: {
+          type: type.ROOM_CHECK.RESPONSE_FAILED,
+          message: "Room already exists",
+        }
+      });
+      return;
+    } else {
+      rooms.push({ roomName, peer1: userId, peer2: null });
+      res.status(200).json({
+        data: {
+          type: type.ROOM_CHECK.RESPONSE_SUCCESS,
+          message: "Room created successfully",
+        },
+      });
+    }
+  });
+});
+
+
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

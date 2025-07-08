@@ -38,6 +38,16 @@ const offereeUpdateLocalDescriptionButton = document.getElementById("offeree_upd
 const offereeSendAnswerButton = document.getElementById("offeree_send_answer");
 const offereeIceButton = document.getElementById("ice_offeree");
 
+export const DOM = {
+  createRoomButton: createRoomButton,
+  joinRoomButton: joinRoomButton,
+  inputRoomNameElement: inputRoomNameElement,
+  roomNameHeadingTag: roomNameHeadingTag,
+  landingPage: landingPage,
+  roomInterface: roomInterface,
+  messagesContainer: messagesContainer,
+}
+
 export function initUI(userId) {
   user_session_id_element.textContent = `sessionId: ${userId}`;
   state.setUserId(userId);
