@@ -12,7 +12,14 @@ myVideoContainer.addEventListener("click", async () => {
     })
         .then(async stream => {
             myVideoElement.srcObject = stream; // add stream to our <video> element
-            pc = new RTCPeerConnection();
+            const config = {
+                iceServers: [
+                    {
+                        urls: "stun:stun.l.google.com:19302",
+                    },
+                ],
+            };
+            pc = new RTCPeerConnection(config);
             pc.addEventListener("icegatheringstatechange", (e) => {
                 console.log("icegatheringstatechange", e);
             });
