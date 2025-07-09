@@ -19,4 +19,18 @@ const setWsConnection = (wsConnection) => {
   setState({ wsConnection });
 }
 
-export { setState, getState, setUserId, setWsConnection };
+const setRoomName = (roomName) => {
+  setState({ roomName });
+}
+
+const getRoomName = () => {
+  return getState().roomName;
+}
+
+const resetState = () => {
+  setState({
+    roomName: null,
+  });
+}
+
+export { setState, getState, setUserId, setWsConnection, setRoomName, getRoomName, resetState };

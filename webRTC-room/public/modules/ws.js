@@ -6,19 +6,20 @@ export const registerSocketEvents = (ws, userId) => {
 
   ws.onopen = () => {
     console.log("Connected to server");
-    uiUtils.logToConsole(`Connected to server as ${userId}`, { highlight: true });
+    uiUtils.logToConsole(`서버 접속 완료, 사용자 ID: ${userId}`, { highlight: true });
 
     ws.onmessage = (event) => {
       console.log(`Received message: ${event.data}`);
     };
 
     ws.onclose = () => {
-      console.log("Disconnected from server");
-      uiUtils.logToConsole("Disconnected from server", { highlight: true });
+      console.log("서버 연결 끊김");
+      uiUtils.logToConsole("서버 연결 끊김", { highlight: true });
     };
 
     ws.onerror = (error) => {
-      console.error(`Error: ${error}`);
+      console.error(`오류: ${error}`);
+      uiUtils.logToConsole(`오류: ${error}`, { highlight: true });
     };
   };
 }

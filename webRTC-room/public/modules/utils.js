@@ -9,7 +9,7 @@ const inputRoomNameElement = document.getElementById('input_room_channel_name');
 const joinRoomButton = document.getElementById('join_button');
 const createRoomButton = document.getElementById('create_room_button');
 const roomNameHeadingTag = document.getElementById('room_name_heading_tag');
-const landingPage = document.getElementById('landing_page_container');
+const landingPageContainer = document.getElementById('landing_page_container');
 const roomInterface = document.getElementById('room_interface');
 const messagesContainer = document.getElementById('messages');
 const messageInputField = document.getElementById('message_input_field');
@@ -39,19 +39,36 @@ const offereeSendAnswerButton = document.getElementById("offeree_send_answer");
 const offereeIceButton = document.getElementById("ice_offeree");
 
 export const DOM = {
-  createRoomButton: createRoomButton,
-  joinRoomButton: joinRoomButton,
-  inputRoomNameElement: inputRoomNameElement,
-  roomNameHeadingTag: roomNameHeadingTag,
-  landingPage: landingPage,
-  roomInterface: roomInterface,
-  messagesContainer: messagesContainer,
+  createRoomButton,
+  joinRoomButton,
+  inputRoomNameElement,
+  roomNameHeadingTag,
+  landingPageContainer,
+  roomInterface,
+  messagesContainer,
+  destroyRoomButton,
 }
 
 export function initUI(userId) {
   user_session_id_element.textContent = `sessionId: ${userId}`;
   state.setUserId(userId);
   setupModalEvent();
+}
+
+// export function 
+export function creatorToProceedToRoom() {
+  landingPageContainer.classList.add("hide"); // landing page 숨김
+  exitButton.classList.add("hide"); // exit button 숨김
+  roomInterface.classList.remove("hide"); // room interface 보임
+  roomNameHeadingTag.textContent = `Room: ${state.getRoomName()}`; // room name 표시
+}
+
+export function exitRoom() {
+  landingPageContainer.classList.remove("hide"); // landing page 보임
+  exitButton.classList.remove("hide"); // exit button 보임
+  roomInterface.classList.add("hide"); // room interface 숨김
+  state.setRoomName(null); // room name 초기화
+  inputRoomNameElement.value = '';
 }
 
 function setupModalEvent() {
@@ -79,6 +96,9 @@ function modelClose() {
 export function logToConsole(message, {
   color = "white",
   highlight = false,
+} = {
+  color: "white",
+  highlight: false,
 }) {
   const consoleDisplayText = document.createElement("div");
   consoleDisplayText.classList.add("console-message");
