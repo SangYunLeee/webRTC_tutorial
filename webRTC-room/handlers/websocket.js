@@ -74,9 +74,31 @@ function handleMessage(message) {
 
 function handleClose(userId) {
   removeConnection(userId);
-  console.log(`Client disconnected: ${userId}`);
+  rooms = removeUserAndCleanRooms(userId);
+  console.log(`User ${userId} disconnected`);
 }
 
 function handleError(error) {
   console.error(`Error: ${error}`);
 } 
+
+// 특정 사용자를 방에서 제거
+function removedRoom(room, userId) {
+  return {
+    ...room,
+    peer1: room.peer1 === userId ? null : room.peer1,
+    peer2: room.peer2 === userId ? null : room.peer2
+  };
+}
+
+// 방이 비어있는지 확인
+function isRoomEmpty(room) {
+  return room.peer1 === null && room.peer2 === null;
+}
+
+// 사용자 연결 해제 및 빈 방 정리 함수
+function removeUserAndCleanRooms(userId) {
+  return rooms
+    .map(room => removedRoom(room, userId))
+    .filter(room => !isRoomEmpty(room));
+}
