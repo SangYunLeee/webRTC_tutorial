@@ -63,6 +63,19 @@ export function creatorToProceedToRoom() {
   roomNameHeadingTag.textContent = `Room: ${state.getRoomName()}`; // room name 표시
 }
 
+export function joineeToProceedToRoom() {
+  landingPageContainer.classList.add("hide"); // landing page 숨김
+  roomInterface.classList.remove("hide"); // room interface 보임
+  destroyRoomButton.classList.remove("hide"); // destroy room button 보임
+  roomNameHeadingTag.textContent = `Room: ${state.getRoomName()}`; // room name 표시
+}
+
+export function updateCreatorRoom() {
+  destroyRoomButton.classList.add("hide"); // destroy room button 보임
+  exitButton.classList.remove("hide"); // exit button 보임
+  logToConsole(`기달려보세요~!`, { highlight: true });
+}
+
 export function exitRoom() {
   landingPageContainer.classList.remove("hide"); // landing page 보임
   exitButton.classList.remove("hide"); // exit button 보임

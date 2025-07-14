@@ -1,41 +1,5 @@
 import * as constants from "../constants.js";
-
-let rooms = [];
-
-export function createRoom(req, res) {
-  let body = "";
-  req.on("data", (chunk) => {
-    body += chunk;
-  });
-  req.on("end", () => {
-    const { roomName, userId } = JSON.parse(body);
-    const existingRoom = rooms.find((room) => room.roomName === roomName);
-    
-    if (existingRoom) {
-      res.status(400).json({
-        data: {
-          type: constants.type.ROOM_CHECK.RESPONSE_FAILED,
-        }
-      });
-      return;
-    } else {
-      rooms.push({
-        roomName,
-        peer1: userId,
-        peer2: null,
-      });
-      res.status(200).json({
-        data: {
-          type: constants.type.ROOM_CHECK.RESPONSE_SUCCESS,
-        },
-      });
-    }
-  });
-}
-
-export function getRooms() {
-  return rooms;
-}
+import * as rooms from "../routes/room.js";
 
 let connections = [];
 
@@ -69,12 +33,109 @@ function extractUserId(req) {
 }
 
 function handleMessage(message) {
-  console.log(`Received message: ${message}`);
+  try {
+    const { label, data } = JSON.parse(message);
+    switch (label) {
+      case constants.labels.NORMAL_SERVER_PROCESS:
+        console.log(`== from NORMAL server process ==`);
+        handleNormalMessage(data);
+        break;
+      case constants.labels.WEBRTC_SERVER_PROCESS:
+        console.log(`== from WEBRTC server process ==`);
+        handleWebrtcMessage(data);
+        break;
+      default:
+        console.error(`Unknown label: ${label}`);
+    }
+  }
+  catch (error) {
+    console.error(`Error: ${error}`);
+  }
+}
+
+function handleNormalMessage(data) {
+  const { type, userId, roomName } = data;
+  switch (type) {
+    case constants.type.ROOM_JOIN.REQUEST:
+      handleRoomJoinRequest(userId, roomName);
+      break;
+    default:
+      console.error(`Unknown type: ${type}`);
+  }
+}
+
+function handleRoomJoinRequest(userId, roomName) {
+  console.log(`Room join request from ${userId} to ${roomName}`);
+  const existingRoom =  rooms.getRooms().find((room) => room.roomName === roomName);
+  // 방이 존재하지 않을 경우
+  if (!existingRoom) {
+    sendMessageToPeer(userId, {
+      label: constants.labels.NORMAL_SERVER_PROCESS,
+      data: {
+        type: constants.type.ROOM_JOIN.RESPONSE_FAILED,
+        message: `Room not found: ${roomName}`,
+      }
+    });
+    return
+  }
+  // 방에 이미 두 유저가 존재할 경우
+  if (existingRoom.peer1 && existingRoom.peer2) {
+    sendMessageToPeer(userId, {
+        label: constants.labels.NORMAL_SERVER_PROCESS,
+        data: {
+          type: constants.type.ROOM_JOIN.RESPONSE_FAILED,
+          message: `Room is full: ${roomName}`,
+        }
+    });
+    return
+  }
+  let existingPeer = null;
+  // 방에 한 유저만 존재할 경우, 비어있는 자리에 유저 추가
+  if(existingRoom.peer1 === null) {
+    existingRoom.peer1 = userId;
+    existingPeer = existingRoom.peer2;
+  } else if (existingRoom.peer2 === null) {
+    existingRoom.peer2 = userId;
+    existingPeer = existingRoom.peer1;
+  }
+
+  sendMessageToPeer(userId, {
+    label: constants.labels.NORMAL_SERVER_PROCESS,
+    data: {
+      type: constants.type.ROOM_JOIN.RESPONSE_SUCCESS,
+      message: `방에 참여했습니다. 방 이름: ${roomName}, 상대방 ID: ${existingPeer}`,
+      peerId: existingPeer,
+      roomName: roomName,
+    }
+  });
+  // 방에 있는 다른 유저에게 알림 전송
+  sendMessageToPeer(existingPeer, {
+    label: constants.labels.NORMAL_SERVER_PROCESS,
+    data: {
+      type: constants.type.ROOM_JOIN.NOTIFY,
+      message: `${roomName}에 유저가 참여했습니다. 유저 ID: ${userId}`,
+      peerId: userId,
+    }
+  });
+}
+
+function sendMessageToPeer(userId, message) {
+  const userConnection = connections.find((connection) => connection.userId === userId);
+  if (userConnection && userConnection.ws) {
+    userConnection.ws.send(JSON.stringify(message));
+    console.log(`Message sent to ${userId}`);
+  } else {
+    console.error(`User connection not found: ${userId}`);
+  }
+}
+
+function handleWebrtcMessage(data) {
+  const { type, userId, roomName } = data;
 }
 
 function handleClose(userId) {
   removeConnection(userId);
-  rooms = removeUserAndCleanRooms(userId);
+  rooms.removeUserAndCleanRooms(userId);
   console.log(`User ${userId} disconnected`);
 }
 
@@ -82,23 +143,3 @@ function handleError(error) {
   console.error(`Error: ${error}`);
 } 
 
-// 특정 사용자를 방에서 제거
-function removedRoom(room, userId) {
-  return {
-    ...room,
-    peer1: room.peer1 === userId ? null : room.peer1,
-    peer2: room.peer2 === userId ? null : room.peer2
-  };
-}
-
-// 방이 비어있는지 확인
-function isRoomEmpty(room) {
-  return room.peer1 === null && room.peer2 === null;
-}
-
-// 사용자 연결 해제 및 빈 방 정리 함수
-function removeUserAndCleanRooms(userId) {
-  return rooms
-    .map(room => removedRoom(room, userId))
-    .filter(room => !isRoomEmpty(room));
-}

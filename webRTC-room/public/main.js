@@ -22,10 +22,6 @@ DOM.createRoomButton.addEventListener("click", () => {
   ajax.createRoom(roomName, userId);
 });
 
-DOM.joinRoomButton.addEventListener("click", () => {
-  ws.joinRoom(wsConnection, userId);
-});
-
 DOM.inputRoomNameElement.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     createRoomButton.click();
@@ -35,4 +31,15 @@ DOM.inputRoomNameElement.addEventListener("keypress", (e) => {
 DOM.destroyRoomButton.addEventListener("click", () => {
   ajax.destroyRoom(state.getRoomName(), userId);
   state.setRoomName(null);
+});
+
+DOM.joinRoomButton.addEventListener("click", () => {
+  const roomName = DOM.inputRoomNameElement.value;
+  if (!roomName) {
+    utils.logToConsole("방 이름을 입력해주세요", {
+      color: "red",
+    });
+    return;
+  }
+  ws.joinRoom(userId, roomName);
 });
